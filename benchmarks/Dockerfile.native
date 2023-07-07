@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America"
-ARG RUST_VERSION="nightly-2022-04-24"
+ARG RUST_VERSION="1.70.0"
 RUN apt update && apt-get install -y --no-install-recommends curl ca-certificates build-essential
 
 # Install rust

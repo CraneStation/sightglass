@@ -9,7 +9,7 @@ set -e
 BENCHMARKS_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 SIGHTGLASS_BASE=$(dirname $BENCHMARKS_DIR)
 
-SIGHTGLASS="cargo +nightly run --release --bin sightglass-cli --"
+SIGHTGLASS="cargo run --release --bin sightglass-cli --"
 
 ENGINE=$SIGHTGLASS_BASE/engines/native/libengine.so
 
