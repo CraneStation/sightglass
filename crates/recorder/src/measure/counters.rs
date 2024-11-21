@@ -4,7 +4,10 @@
 //! kernel.perf_event_paranoid=0`.
 use super::Measure;
 use crate::measure::Measurements;
-use perf_event::{events::Hardware, Builder, Counter, Group};
+use perf_event::{
+    events::{Hardware, Software},
+    Builder, Counter, Group,
+};
 use serde::{Deserialize, Serialize};
 use sightglass_data::Phase;
 
@@ -15,6 +18,7 @@ pub struct CounterMeasure {
     instructions_retired: Counter,
     cache_accesses: Counter,
     cache_misses: Counter,
+    task_clock: Counter,
 }
 
 impl CounterMeasure {
@@ -60,6 +64,15 @@ impl CounterMeasure {
                      have such a counter? If it does, your kernel may not fully support this \
                      processor.",
                 ),
+            task_clock: Builder::new()
+                .group(&mut group)
+                .kind(Software::TASK_CLOCK)
+                .build()
+                .expect(
+                    "Unable to create TASK_CLOCK software counter. Does this system actually \
+                     have such a counter? If it does, your kernel may not fully support this \
+                     processor.",
+                ),
             event_group: group,
         }
     }
@@ -83,6 +96,7 @@ impl Measure for CounterMeasure {
         );
         measurements.add(phase, "cache-accesses".into(), counts[&self.cache_accesses]);
         measurements.add(phase, "cache-misses".into(), counts[&self.cache_misses]);
+        measurements.add(phase, "task-clocks".into(), counts[&self.task_clock]);
     }
 }
 
@@ -102,6 +116,9 @@ pub struct PerfCounters {
     /// Measured by performance counter. May be 0, in which case the counter is almost certainly
     /// disabled.
     pub cache_misses: u64,
+    /// Measured by performance counter. May be 0, in which case the counter is almost certainly
+    /// disabled.
+    pub task_clock: u64,
 }
 
 impl std::ops::Div<u64> for PerfCounters {
@@ -112,6 +129,7 @@ impl std::ops::Div<u64> for PerfCounters {
             instructions_retired: self.instructions_retired / rhs,
             cache_accesses: self.cache_accesses / rhs,
             cache_misses: self.cache_misses / rhs,
+            task_clock: self.task_clock / rhs,
         }
     }
 }
@@ -124,6 +142,7 @@ impl std::ops::Add<PerfCounters> for PerfCounters {
             instructions_retired: self.instructions_retired + rhs.instructions_retired,
             cache_accesses: self.cache_accesses + rhs.cache_accesses,
             cache_misses: self.cache_misses + rhs.cache_misses,
+            task_clock: self.task_clock + rhs.task_clock,
         }
     }
 }
